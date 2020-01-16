@@ -1,4 +1,4 @@
-package apidemos
+package access
 
 // SearchResults contains the full requests from a search query
 type SearchResults struct {

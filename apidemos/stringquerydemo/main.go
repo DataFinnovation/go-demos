@@ -3,18 +3,18 @@ package main
 import (
 	"fmt"
 
-	"github.com/DataFinnovation/go-demos/apidemos"
+	"github.com/DataFinnovation/go-demos/apidemos/access"
 )
 
 func main() {
-	scopes := "clientapi/basicsearch"
-	accessToken := apidemos.GetToken(scopes)
+	scopes := []string{"clientapi/basicsearch"}
+	accessToken := access.GetToken(scopes)
 
 	theQueryString := `filingsource:"Korea FSS" AND fieldname:(hedge OR (foreign AND exchange) OR (interest AND rate))`
-	factResults := apidemos.FactsStringQuery(theQueryString, accessToken, 100)
+	factResults := access.FactsStringQuery(theQueryString, accessToken, 100)
 	fmt.Println(factResults.TotalHits)
 
 	theDocQueryStrig := `filingsource:"US SEC" AND companyname:amazon`
-	docResults := apidemos.DocumentsStringQuery(theDocQueryStrig, accessToken, 100)
+	docResults := access.DocumentsStringQuery(theDocQueryStrig, accessToken, 100)
 	fmt.Println(docResults.TotalHits)
 }

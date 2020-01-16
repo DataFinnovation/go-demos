@@ -1,4 +1,4 @@
-package apidemos
+package access
 
 import "os"
 

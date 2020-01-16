@@ -3,16 +3,16 @@ package main
 import (
 	"fmt"
 
-	"github.com/DataFinnovation/go-demos/apidemos"
+	"github.com/DataFinnovation/go-demos/apidemos/access"
 )
 
 func main() {
-	token := apidemos.GetTokenDefaultScopes()
+	token := access.GetTokenDefaultScopes()
 	queryString := `{ "query" : { "term" : { "companyname" : "microsoft"}}}`
-	res := apidemos.FactsDSLQuery(queryString, token, 100)
+	res := access.FactsDSLQuery(queryString, token, 100)
 	fmt.Println(res.TotalHits)
 	fmt.Println(len(res.Hits))
-	res = apidemos.DocumentsDSLQuery(queryString, token, 100)
+	res = access.DocumentsDSLQuery(queryString, token, 100)
 	fmt.Println(res.TotalHits)
 	fmt.Println(len(res.Hits))
 }
