@@ -1,6 +1,7 @@
 package apidemos
 
 import (
+	"bytes"
 	"encoding/json"
 	"io/ioutil"
 	"log"
@@ -26,21 +27,21 @@ func apiURLStub() string {
 
 // GetTokenDefaultScopes uses the default scope
 func GetTokenDefaultScopes() string {
-	return GetToken("clientapi/basicsearch clientapi/advancedsearch'")
+	return GetToken("clientapi/basicsearch clientapi/advancedsearch")
 }
 
 // GetToken returns a single oauth2 token
 func GetToken(scopes string) string {
-	var username string = os.Getenv("DF_CLIENT_ID")
-	var passwd string = os.Getenv("DF_CLIENT_SECRET")
-	client := &http.Client{}
+	clientID := os.Getenv("DF_CLIENT_ID")
+	clientSecret := os.Getenv("DF_CLIENT_SECRET")
+	client := http.Client{}
 
 	queryData := url.Values{}
 	queryData.Set("grant_type", "client_credentials")
 	queryData.Set("scope", scopes)
 	req, err := http.NewRequest("POST", tokenURL(), strings.NewReader(queryData.Encode()))
 
-	req.SetBasicAuth(username, passwd)
+	req.SetBasicAuth(clientID, clientSecret)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	resp, err := client.Do(req)
@@ -62,7 +63,26 @@ func Get(urlStub, token string, queryDict url.Values) []byte {
 	req.Header.Add("x-api-key", os.Getenv("DF_API_KEY"))
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", authString)
-	client := &http.Client{}
+	client := http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+	bodyResult, err := ioutil.ReadAll(resp.Body)
+	return bodyResult
+}
+
+// Post ...
+func Post(urlStub, token, jsonString string, queryDict url.Values) []byte {
+	queryURL := apiURLStub() + urlStub
+	byteObject := []byte(jsonString)
+	req, err := http.NewRequest("POST", queryURL, bytes.NewBuffer(byteObject))
+
+	authString := "Bearer " + token
+	req.Header.Add("x-api-key", os.Getenv("DF_API_KEY"))
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", authString)
+	client := http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatal(err)
