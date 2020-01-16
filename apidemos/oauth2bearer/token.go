@@ -1,3 +1,5 @@
+// Package oauth2bearer provides a simple set of wrappers for oauth2
+// bearer tokens
 package oauth2bearer
 
 import (
