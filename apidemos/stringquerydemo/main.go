@@ -8,7 +8,7 @@ import (
 
 func main() {
 	scopes := []string{"clientapi/basicsearch"}
-	accessToken := access.GetToken(scopes)
+	accessToken := access.NewDFAccess(scopes)
 
 	theQueryString := `filingsource:"Korea FSS" AND fieldname:(hedge OR (foreign AND exchange) OR (interest AND rate))`
 	factResults := access.FactsStringQuery(theQueryString, accessToken, 100)

@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"net/url"
 	"strconv"
-
-	"github.com/DataFinnovation/go-demos/apidemos/oauth2bearer"
 )
 
 func parseRawResult(rawResult []byte) *SearchResults {
@@ -16,42 +14,42 @@ func parseRawResult(rawResult []byte) *SearchResults {
 
 // FactsStringQuery runs a single query-string query and
 // returns parsed results
-func FactsStringQuery(query string, token *oauth2bearer.BearerToken, nResults int) *SearchResults {
+func FactsStringQuery(query string, dfa *DFAccess, nResults int) *SearchResults {
 	urlStub := "facts/textquery"
-	return stringQuery(urlStub, query, token, nResults)
+	return stringQuery(urlStub, query, dfa, nResults)
 }
 
 // DocumentsStringQuery runs a single query-string query and
 // returns parsed results
-func DocumentsStringQuery(query string, token *oauth2bearer.BearerToken, nResults int) *SearchResults {
+func DocumentsStringQuery(query string, dfa *DFAccess, nResults int) *SearchResults {
 	urlStub := "documents/textquery"
-	return stringQuery(urlStub, query, token, nResults)
+	return stringQuery(urlStub, query, dfa, nResults)
 }
 
-func stringQuery(urlStub, query string, token *oauth2bearer.BearerToken, nResults int) *SearchResults {
+func stringQuery(urlStub, query string, dfa *DFAccess, nResults int) *SearchResults {
 	queryDict := url.Values{}
 	queryDict.Set("querystring", query)
 	queryDict.Set("simplequery", "false")
 	queryDict.Set("maxresult", strconv.Itoa(nResults))
-	res := Get(urlStub, token, queryDict)
+	res := Get(urlStub, dfa, queryDict)
 	return parseRawResult(res)
 }
 
 // FactsDSLQuery runs a dsl query against the fact database
-func FactsDSLQuery(dslQueryString string, token *oauth2bearer.BearerToken, nResults int) *SearchResults {
-	return dslQuery("facts/dslquery", dslQueryString, token, nResults)
+func FactsDSLQuery(dslQueryString string, dfa *DFAccess, nResults int) *SearchResults {
+	return dslQuery("facts/dslquery", dslQueryString, dfa, nResults)
 }
 
 // DocumentsDSLQuery runs a dsl query against the fact database
-func DocumentsDSLQuery(dslQueryString string, token *oauth2bearer.BearerToken, nResults int) *SearchResults {
-	return dslQuery("documents/dslquery", dslQueryString, token, nResults)
+func DocumentsDSLQuery(dslQueryString string, dfa *DFAccess, nResults int) *SearchResults {
+	return dslQuery("documents/dslquery", dslQueryString, dfa, nResults)
 }
 
-func dslQuery(urlStub, queryString string, token *oauth2bearer.BearerToken, nResults int) *SearchResults {
+func dslQuery(urlStub, queryString string, dfa *DFAccess, nResults int) *SearchResults {
 	fullString := `{"dslquery":` + queryString + `}`
 	queryDict := url.Values{}
 	queryDict.Set("maxresult", strconv.Itoa(nResults))
-	res := Post(urlStub, fullString, token, queryDict)
+	res := Post(urlStub, fullString, dfa, queryDict)
 	return parseRawResult(res)
 }
 

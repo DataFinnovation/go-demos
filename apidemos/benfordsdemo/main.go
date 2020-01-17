@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	accessToken := access.GetTokenDefaultScopes()
+	accessToken := access.NewDFAccessDefaultScopes()
 	theQueryString := `filingsource:"US SEC" AND companyname:"bank" AND enddate:[2018-01-01 TO 2018-12-31]`
 	factResults := access.FactsStringQuery(theQueryString, accessToken, 5000)
 	valueStrings := make([]string, factResults.TotalHits)

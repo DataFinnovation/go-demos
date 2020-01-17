@@ -13,14 +13,18 @@ import (
 	"time"
 )
 
+// refreshMarginSeconds controls how many seconds before the expected expiry
+// of a bearer token we decide to refresh it
+const refreshMarginSeconds = 10
+
 // BearerToken is the blob of data returned, in JSON, when
 // you request a new bearer token
 type BearerToken struct {
-	AccessToken  string `json:"access_token"`
-	ExpiresIn    int    `json:"expires_in"`
-	TokenType    string `json:"token_type"`
-	creationTime time.Time
-	source       TokenSource
+	AccessToken string `json:"access_token"`
+	ExpiresIn   int    `json:"expires_in"`
+	TokenType   string `json:"token_type"`
+	expiryTime  time.Time
+	source      TokenSource
 }
 
 // ClientCredentials is an id/secret pair of credentials for
@@ -63,7 +67,8 @@ func GetNewBearerToken(source TokenSource) *BearerToken {
 	bodyRaw, err := ioutil.ReadAll(resp.Body)
 	var token BearerToken
 	json.Unmarshal(bodyRaw, &token)
-	token.creationTime = time.Now()
+	token.expiryTime = time.Now().Add(time.Second*time.Duration(token.ExpiresIn) -
+		time.Second*time.Duration(refreshMarginSeconds))
 	token.source = source
 	return &token
 }
@@ -83,10 +88,7 @@ func (t *BearerToken) Apply(req *http.Request) {
 // needsRefresh indicates whether this token should be refreshed
 func (t *BearerToken) needsRefresh() bool {
 	now := time.Now()
-	timeSinceCreated := now.Sub(t.creationTime).Seconds()
-
-	// FIXME - 60s window is a bit of a kludge
-	if (float64(t.ExpiresIn) - timeSinceCreated) < 60 {
+	if t.expiryTime.Before(now) {
 		return true
 	}
 	return false
@@ -94,10 +96,12 @@ func (t *BearerToken) needsRefresh() bool {
 
 func (t *BearerToken) doRefresh() {
 	nt := GetNewBearerToken(t.source)
+	if t.TokenType != nt.TokenType {
+		log.Panic("Somehow token type changed")
+	}
 	t.AccessToken = nt.AccessToken
 	t.ExpiresIn = nt.ExpiresIn
-	t.TokenType = nt.TokenType
-	t.creationTime = nt.creationTime
+	t.expiryTime = nt.expiryTime
 }
 
 // RefreshIfNeeded refreshes the token if it looks necessary

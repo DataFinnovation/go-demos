@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	token := access.GetTokenDefaultScopes()
+	token := access.NewDFAccessDefaultScopes()
 	queryString := `{ "query" : { "term" : { "companyname" : "microsoft"}}}`
 	res := access.FactsDSLQuery(queryString, token, 100)
 	fmt.Println(res.TotalHits)
