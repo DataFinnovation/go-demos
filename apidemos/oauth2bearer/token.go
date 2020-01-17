@@ -24,7 +24,7 @@ type BearerToken struct {
 	ExpiresIn   int    `json:"expires_in"`
 	TokenType   string `json:"token_type"`
 	expiryTime  time.Time
-	source      TokenSource
+	source      *BearerTokenSource
 }
 
 // ClientCredentials is an id/secret pair of credentials for
@@ -34,16 +34,16 @@ type ClientCredentials struct {
 	ClientSecret string
 }
 
-// TokenSource describes a place to get tokens
-type TokenSource struct {
+// BearerTokenSource describes a place to get tokens
+type BearerTokenSource struct {
 	Credentials ClientCredentials
 	ScopesList  []string
 	URL         string
 }
 
-// GetNewBearerToken retrieves a new fresh bearer token from the
+// Token retrieves a new fresh bearer token from the
 // requested source
-func GetNewBearerToken(source TokenSource) *BearerToken {
+func (source *BearerTokenSource) Token() (*BearerToken, error) {
 	scopeString := strings.Join(source.ScopesList, " ")
 
 	queryData := url.Values{}
@@ -56,7 +56,7 @@ func GetNewBearerToken(source TokenSource) *BearerToken {
 	}
 
 	req.SetBasicAuth(source.Credentials.ClientID, source.Credentials.ClientSecret)
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	client := http.Client{}
 	resp, err := client.Do(req)
@@ -70,32 +70,37 @@ func GetNewBearerToken(source TokenSource) *BearerToken {
 	token.expiryTime = time.Now().Add(time.Second*time.Duration(token.ExpiresIn) -
 		time.Second*time.Duration(refreshMarginSeconds))
 	token.source = source
-	return &token
+	return &token, nil
+}
+
+// Type returns Bearer for this token
+func (t *BearerToken) Type() string {
+	return "Bearer"
 }
 
 // FreshAuthString returns a valid, properly refreshed auth string
 func (t *BearerToken) FreshAuthString() string {
-	t.RefreshIfNeeded()
+	t.Refresh()
 	authString := "Bearer " + t.AccessToken
 	return authString
 }
 
-// Apply puts this bearer token's authorization into the request
-func (t *BearerToken) Apply(req *http.Request) {
+// SetAuthHeader puts this bearer token's authorization into the request
+func (t *BearerToken) SetAuthHeader(req *http.Request) {
 	req.Header.Set("Authorization", t.FreshAuthString())
 }
 
-// needsRefresh indicates whether this token should be refreshed
-func (t *BearerToken) needsRefresh() bool {
-	now := time.Now()
-	if t.expiryTime.Before(now) {
-		return true
+// Valid indicates whether this token is still valid
+// or should be refreshed
+func (t *BearerToken) Valid() bool {
+	if t.expiryTime.Before(time.Now()) {
+		return false
 	}
-	return false
+	return true
 }
 
 func (t *BearerToken) doRefresh() {
-	nt := GetNewBearerToken(t.source)
+	nt, _ := t.source.Token()
 	if t.TokenType != nt.TokenType {
 		log.Panic("Somehow token type changed")
 	}
@@ -104,9 +109,9 @@ func (t *BearerToken) doRefresh() {
 	t.expiryTime = nt.expiryTime
 }
 
-// RefreshIfNeeded refreshes the token if it looks necessary
-func (t *BearerToken) RefreshIfNeeded() {
-	if t.needsRefresh() {
+// Refresh refreshes the token if it looks necessary
+func (t *BearerToken) Refresh() {
+	if !t.Valid() {
 		t.doRefresh()
 	}
 }
@@ -117,8 +122,12 @@ func (t *BearerToken) NewHTTPRequest(method, url string, body io.Reader) (*http.
 	if err != nil {
 		return nil, err
 	}
-	t.Apply(req)
 	return req, nil
+}
+
+// NewAuthenticatedClient builds a new client with auth built-in
+func (t *BearerToken) NewAuthenticatedClient() *AuthenticatedClient {
+	return t.source.NewAuthenticatedClient()
 }
 
 // eof

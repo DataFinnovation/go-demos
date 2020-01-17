@@ -11,10 +11,10 @@ func main() {
 	accessToken := access.NewDFAccess(scopes)
 
 	theQueryString := `filingsource:"Korea FSS" AND fieldname:(hedge OR (foreign AND exchange) OR (interest AND rate))`
-	factResults := access.FactsStringQuery(theQueryString, accessToken, 100)
+	factResults := accessToken.FactsStringQuery(theQueryString, 100)
 	fmt.Println(factResults.TotalHits)
 
 	theDocQueryStrig := `filingsource:"US SEC" AND companyname:amazon`
-	docResults := access.DocumentsStringQuery(theDocQueryStrig, accessToken, 100)
+	docResults := accessToken.DocumentsStringQuery(theDocQueryStrig, 100)
 	fmt.Println(docResults.TotalHits)
 }

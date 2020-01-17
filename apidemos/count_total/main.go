@@ -24,7 +24,7 @@ func main() {
 		queryString :=
 			`{ "query" : { "term" : { "filingsource" : "` + s + `"}},` +
 				`"sort" : {"retrievaltime" : "desc"}` + `}`
-		res := access.DocumentsDSLQuery(queryString, dfa, 1)
+		res := dfa.DocumentsDSLQuery(queryString, 1)
 		total += res.TotalHits
 		lastArrivalTimeString := res.Hits[0].Source.RetrievalTime
 		lastArrivalTime, _ := time.Parse(time.RFC3339, lastArrivalTimeString+"Z")

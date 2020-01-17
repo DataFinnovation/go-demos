@@ -9,10 +9,10 @@ import (
 func main() {
 	token := access.NewDFAccessDefaultScopes()
 	queryString := `{ "query" : { "term" : { "companyname" : "microsoft"}}}`
-	res := access.FactsDSLQuery(queryString, token, 100)
+	res := token.FactsDSLQuery(queryString, 100)
 	fmt.Println(res.TotalHits)
 	fmt.Println(len(res.Hits))
-	res = access.DocumentsDSLQuery(queryString, token, 100)
+	res = token.DocumentsDSLQuery(queryString, 100)
 	fmt.Println(res.TotalHits)
 	fmt.Println(len(res.Hits))
 }
