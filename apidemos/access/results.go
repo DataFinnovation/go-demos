@@ -1,5 +1,7 @@
 package access
 
+import "encoding/json"
+
 // SearchResults contains the full requests from a search query
 type SearchResults struct {
 	TotalHits int     `json:"totalHits"`
@@ -31,6 +33,12 @@ type HitRecord struct {
 	FilerID       string `json:"filerid"`
 	Context       string `json:"context"`
 	CompanyName   string `json:"companyname"`
+}
+
+func parseRawResult(rawResult []byte) *SearchResults {
+	var sr SearchResults
+	json.Unmarshal(rawResult, &sr)
+	return &sr
 }
 
 // eof

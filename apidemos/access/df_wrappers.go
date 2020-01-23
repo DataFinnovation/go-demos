@@ -1,16 +1,9 @@
 package access
 
 import (
-	"encoding/json"
 	"net/url"
 	"strconv"
 )
-
-func parseRawResult(rawResult []byte) *SearchResults {
-	var sr SearchResults
-	json.Unmarshal(rawResult, &sr)
-	return &sr
-}
 
 // FactsStringQuery runs a single query-string query and
 // returns parsed results
